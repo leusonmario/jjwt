@@ -1,13 +1,28 @@
-# https://travis-ci.org/jwtk/jjwt
+
+sudo: required
 language: java
 
 jdk:
   - oraclejdk7
   - oraclejdk8
 
-before_install:
-  - export BUILD_COVERAGE="$([ $TRAVIS_JDK_VERSION == 'oraclejdk8' ] && echo 'true')"
-install: echo "No need to run mvn install -DskipTests then mvn install.  Running mvn install."
-script: mvn install
-after_success:
-  - test -z "$BUILD_COVERAGE" || mvn clean test jacoco:report coveralls:report
+
+
+script:
+  - mvn clean cobertura:cobertura -Dtest=JwtParserTest#testParseWithPrematureJwt -DfailIfNoTests=false
+
+before_deploy:
+- tar -zcvf coverage-result.tar.gz /home/travis/build/leusonmario/jjwt/target/site/cobertura
+
+deploy:
+  provider: releases
+  api_key:
+    secure: "SJ8gNjvYX5FabOk7BPMnTiaxzOD70kt4HFdkNMDsienMMZG8xOYw0E1RiKlR/YX6t8e90mv+SYELRJONhq/pxHz6Vf4A38tj1fP1z5GYbyBgsecit3RI15ohmnSKmN7zTNJAWDdm6NzSHifhzF0JBb0A8IBtX21CL6OuR8PI6HWcVIYYgQkzReqVQMueCM6SbA9CI7yZDLsSMb+p8kph8E4E0FDDQKJ0tUtbVwCwAzauclEBx8CZBtICkXMg7qfyQkV0iKZeVK+YWPJhMPGGJzQ9TH0MyuT9v1P3+8jNrB5KArjJs6zVzAQjBm7stDew20wAik4DTaEEyXkfSYNz1jyTjceIkNfCuqCKCnWqlMtMQMZ73B8T3MmWQc5Oe9A9XmW8nZMK56kAX0TNCaoOnuGIhGC8BvIG736Ur5L3/VGDspZoZfQRirYgA9UV3TqLBG2N6QO+MxG5Heg1OZYFAmklU2rLeeZavTybOnj8qgcMsRPRVE6UsjIkJ0Oo8Z4L6scDwni6MVDCx6Ls3COOGcyfmfvBC+HW4IzTk6Pz2aA0bPauZ0mcCH/pFSYfaISY1eRjzNXna6dvAbHp9lpyweUeFT1Xv1O2uLbdcjbNiNN1pXV9Oj+BBuENo2o0DFzkxm5UL5OTOZsDVPt/5vpU4j442JD26OCBAptTizu5Sho="
+
+
+  file: coverage-result.tar.gz
+  file_glob: true
+  overwrite: true
+  skip_cleanup: true
+  on:
+    tags: true
